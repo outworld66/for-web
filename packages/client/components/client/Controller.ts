@@ -551,6 +551,61 @@ export default class ClientController {
     });
   }
 
+  async loginOIDC(ticket: string, modals: ModalControllerExtended) {
+    const post = this.api.post as unknown as (
+      path: string,
+      data?: unknown,
+    ) => Promise<API.ResponseLogin>;
+    let session = await post(
+      `/auth/session/oidc/${encodeURIComponent(ticket)}`,
+      {},
+    );
+    const friendly_name = "Stoat for Web (OIDC)";
+
+    if (session.result === "MFA") {
+      const { allowed_methods } = session;
+      while (session.result === "MFA") {
+        const mfa_response: API.MFAResponse | undefined = await new Promise(
+          (callback) =>
+            modals.openModal({
+              type: "mfa_flow",
+              state: "unknown",
+              available_methods: allowed_methods,
+              callback,
+            }),
+        );
+
+        if (!mfa_response) break;
+        try {
+          session = await this.api.post("/auth/session/login", {
+            mfa_response,
+            mfa_ticket: session.ticket,
+            friendly_name,
+          });
+        } catch (err) {
+          console.error("Failed OIDC MFA login:", err);
+        }
+      }
+      if (session.result === "MFA") throw "Cancelled";
+    }
+
+    if (session.result === "Disabled") {
+      throw new Error("Account is disabled");
+    }
+
+    const createdSession = {
+      _id: session._id,
+      token: session.token,
+      userId: session.user_id,
+      valid: false,
+    };
+    this.state.auth.setSession(createdSession);
+    this.lifecycle.transition({
+      type: TransitionType.LoginUncached,
+      session: createdSession,
+    });
+  }
+
   async selectUsername(username: string) {
     await this.instance.client.api.post("/onboard/complete", {
       username,

@@ -1,4 +1,4 @@
-import { Match, Switch } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
 
 import { Trans } from "@lingui/solid/macro";
 
@@ -11,6 +11,7 @@ import { Button, Column, Row, Text, iconSize } from "@revolt/ui";
 import MdArrowBack from "@material-design-icons/svg/filled/arrow_back.svg?component-solid";
 
 import { useState } from "@revolt/state";
+import { useInstance } from "@revolt/instance";
 import { FlowTitle } from "./Flow";
 import { Fields, Form } from "./Form";
 
@@ -19,6 +20,7 @@ import { Fields, Form } from "./Form";
  */
 export default function FlowLogin() {
   const state = useState();
+  const instance = useInstance();
   const modals = useModals();
   const { lifecycle, isLoggedIn, isError, login, selectUsername } =
     useClientLifecycle();
@@ -89,6 +91,28 @@ export default function FlowLogin() {
               <Button type="submit" size="md">
                 <Trans>Log in</Trans>
               </Button>
+              <Show
+                when={
+                  (
+                    instance.config
+                      .features as typeof instance.config.features & {
+                      oidc?: boolean;
+                    }
+                  ).oidc
+                }
+              >
+                <Button
+                  variant="tonal"
+                  size="md"
+                  onPress={() =>
+                    window.location.assign(
+                      `${instance.apiUrl}/auth/session/oidc`,
+                    )
+                  }
+                >
+                  <Trans>Continue with single sign-on</Trans>
+                </Button>
+              </Show>
             </Form>
           </>
         }
