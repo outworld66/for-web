@@ -1,7 +1,8 @@
 name: Build OIDC client image
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [feature/oidc-login]
 
 permissions:
   contents: read
