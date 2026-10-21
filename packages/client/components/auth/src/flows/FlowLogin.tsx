@@ -10,8 +10,8 @@ import { Button, Column, Row, Text, iconSize } from "@revolt/ui";
 
 import MdArrowBack from "@material-design-icons/svg/filled/arrow_back.svg?component-solid";
 
-import { useState } from "@revolt/state";
 import { useInstance } from "@revolt/instance";
+import { useState } from "@revolt/state";
 import { FlowTitle } from "./Flow";
 import { Fields, Form } from "./Form";
 
@@ -24,6 +24,12 @@ export default function FlowLogin() {
   const modals = useModals();
   const { lifecycle, isLoggedIn, isError, login, selectUsername } =
     useClientLifecycle();
+  const oidcEnabled =
+    (
+      instance.config.features as typeof instance.config.features & {
+        oidc?: boolean;
+      }
+    ).oidc === true;
 
   /**
    * Log into account
@@ -75,32 +81,7 @@ export default function FlowLogin() {
               <Trans>Welcome back</Trans>
             </FlowTitle>
             <Form onSubmit={performLogin}>
-              <Fields fields={["email", "password"]} />
-              <Column gap="sm" align class="auth-help-links">
-                <A href="/login/reset">
-                  <Button variant="text">
-                    <Trans>Forgot password?</Trans>
-                  </Button>
-                </A>
-                <A href="/login/resend">
-                  <Button variant="text">
-                    <Trans>Resend verification</Trans>
-                  </Button>
-                </A>
-              </Column>
-              <Button type="submit" size="md">
-                <Trans>Log in</Trans>
-              </Button>
-              <Show
-                when={
-                  (
-                    instance.config
-                      .features as typeof instance.config.features & {
-                      oidc?: boolean;
-                    }
-                  ).oidc
-                }
-              >
+              <Show when={oidcEnabled}>
                 <Button
                   variant="tonal"
                   size="md"
@@ -111,6 +92,24 @@ export default function FlowLogin() {
                   }
                 >
                   <Trans>Continue with single sign-on</Trans>
+                </Button>
+              </Show>
+              <Show when={!oidcEnabled}>
+                <Fields fields={["email", "password"]} />
+                <Column gap="sm" align class="auth-help-links">
+                  <A href="/login/reset">
+                    <Button variant="text">
+                      <Trans>Forgot password?</Trans>
+                    </Button>
+                  </A>
+                  <A href="/login/resend">
+                    <Button variant="text">
+                      <Trans>Resend verification</Trans>
+                    </Button>
+                  </A>
+                </Column>
+                <Button type="submit" size="md">
+                  <Trans>Log in</Trans>
                 </Button>
               </Show>
             </Form>

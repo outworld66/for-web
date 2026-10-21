@@ -5,7 +5,7 @@ import { styled } from "styled-system/jsx";
 import { useApi, useClientLifecycle } from "@revolt/client";
 import { useInstance } from "@revolt/instance";
 import { useModals } from "@revolt/modal";
-import { A, useNavigate, useParams } from "@revolt/routing";
+import { A, Navigate, useNavigate, useParams } from "@revolt/routing";
 import { Button, iconSize } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -69,6 +69,11 @@ export default function FlowCreate() {
   const modals = useModals();
   const { login } = useClientLifecycle();
   const { config, isStoat } = useInstance();
+  const oidcEnabled =
+    (config.features as typeof config.features & { oidc?: boolean }).oidc ===
+    true;
+
+  if (oidcEnabled) return <Navigate href="/login/auth" />;
 
   /**
    * Create an account

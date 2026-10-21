@@ -20,6 +20,7 @@ import {
 } from "@revolt/app/menus/ContextMenu";
 import { useClientLifecycle } from "@revolt/client";
 import { State } from "@revolt/client/Controller";
+import { useInstance } from "@revolt/instance";
 import { A, useLocation } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { IconButton, iconSize } from "@revolt/ui";
@@ -316,8 +317,15 @@ const SUCCESS_FLASH_MS = 1400;
 export function AuthPage(props: { children: JSX.Element }) {
   const state = useState();
   const location = useLocation();
+  const instance = useInstance();
   const { lifecycle } = useClientLifecycle();
   const isCreate = () => location.pathname.includes("/login/create");
+  const oidcEnabled =
+    (
+      instance.config.features as typeof instance.config.features & {
+        oidc?: boolean;
+      }
+    ).oidc === true;
 
   const [typing, setTyping] = createSignal(false);
   const [pendingSubmits, setPendingSubmits] = createSignal(0);
@@ -532,28 +540,30 @@ export function AuthPage(props: { children: JSX.Element }) {
             </Brand>
 
             <TopbarActions>
-              <AccountSwitch>
-                <Show
-                  when={isCreate()}
-                  fallback={
-                    <>
-                      <span>
-                        <Trans>New to Stoat?</Trans>
-                      </span>
-                      <A href="/login/create">
-                        <Trans>Create account</Trans>
-                      </A>
-                    </>
-                  }
-                >
-                  <span>
-                    <Trans>Already have an account?</Trans>
-                  </span>
-                  <A href="/login/auth">
-                    <Trans>Log in</Trans>
-                  </A>
-                </Show>
-              </AccountSwitch>
+              <Show when={!oidcEnabled}>
+                <AccountSwitch>
+                  <Show
+                    when={isCreate()}
+                    fallback={
+                      <>
+                        <span>
+                          <Trans>New to Stoat?</Trans>
+                        </span>
+                        <A href="/login/create">
+                          <Trans>Create account</Trans>
+                        </A>
+                      </>
+                    }
+                  >
+                    <span>
+                      <Trans>Already have an account?</Trans>
+                    </span>
+                    <A href="/login/auth">
+                      <Trans>Log in</Trans>
+                    </A>
+                  </Show>
+                </AccountSwitch>
+              </Show>
 
               <IconButton
                 variant="tonal"
