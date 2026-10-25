@@ -553,7 +553,7 @@ export default class ClientController {
   }
 
   async loginOIDC(ticket: string, modals: ModalControllerExtended) {
-    const post = this.api.post as unknown as (
+    const post = this.api.post.bind(this.api) as unknown as (
       path: string,
       data?: unknown,
     ) => Promise<API.ResponseLogin>;
