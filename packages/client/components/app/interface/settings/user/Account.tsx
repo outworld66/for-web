@@ -52,6 +52,9 @@ function EditAccount() {
   const client = useClient();
   const { openModal } = useModals();
   const [email, setEmail] = createSignal("•••••••••••@•••••••••••");
+  const oidcEnabled = () =>
+    (client().configuration?.features as { oidc?: boolean } | undefined)
+      ?.oidc === true;
 
   return (
     <CategoryButton.Group>
@@ -69,45 +72,54 @@ function EditAccount() {
         <Trans>Username</Trans>
       </CategoryButton>
       <CategoryButton
-        action="chevron"
-        onClick={() =>
-          openModal({
-            type: "edit_email",
-            client: client(),
-          })
+        action={oidcEnabled() ? undefined : "chevron"}
+        onClick={
+          oidcEnabled()
+            ? undefined
+            : () =>
+                openModal({
+                  type: "edit_email",
+                  client: client(),
+                })
         }
         icon={<MdMail {...iconSize(22)} />}
         description={
-          <Row>
-            {email()}{" "}
-            <Show when={email().startsWith("•")}>
-              <a
-                onClick={(event) => {
-                  event.stopPropagation();
-                  client().account.fetchEmail().then(setEmail);
-                }}
-              >
-                Reveal
-              </a>
-            </Show>
-          </Row>
+          oidcEnabled() ? (
+            <Trans>Manage login email in your identity provider</Trans>
+          ) : (
+            <Row>
+              {email()}{" "}
+              <Show when={email().startsWith("•")}>
+                <a
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    client().account.fetchEmail().then(setEmail);
+                  }}
+                >
+                  Reveal
+                </a>
+              </Show>
+            </Row>
+          )
         }
       >
         <Trans>Email</Trans>
       </CategoryButton>
-      <CategoryButton
-        action="chevron"
-        onClick={() =>
-          openModal({
-            type: "edit_password",
-            client: client(),
-          })
-        }
-        icon={<MdPassword {...iconSize(22)} />}
-        description={"•••••••••"}
-      >
-        <Trans>Password</Trans>
-      </CategoryButton>
+      <Show when={!oidcEnabled()}>
+        <CategoryButton
+          action="chevron"
+          onClick={() =>
+            openModal({
+              type: "edit_password",
+              client: client(),
+            })
+          }
+          icon={<MdPassword {...iconSize(22)} />}
+          description="•••••••••"
+        >
+          <Trans>Password</Trans>
+        </CategoryButton>
+      </Show>
     </CategoryButton.Group>
   );
 }

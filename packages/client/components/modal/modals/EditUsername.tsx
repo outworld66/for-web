@@ -1,3 +1,4 @@
+import { Show } from "solid-js";
 import { createFormControl, createFormGroup } from "solid-forms";
 
 import { Trans, useLingui } from "@lingui/solid/macro";
@@ -15,6 +16,9 @@ export function EditUsernameModal(
 ) {
   const { t } = useLingui();
   const { showError } = useModals();
+  const oidcEnabled =
+    (props.client.configuration?.features as { oidc?: boolean } | undefined)
+      ?.oidc === true;
 
   const group = createFormGroup({
     // we don't expect it to change nor want it to
@@ -22,7 +26,9 @@ export function EditUsernameModal(
     username: createFormControl(props.client.user!.username, {
       required: true,
     }),
-    currentPassword: createFormControl("", { required: true }),
+    currentPassword: createFormControl("", {
+      required: !oidcEnabled,
+    }),
   });
 
   async function onSubmit() {
@@ -81,13 +87,15 @@ export function EditUsernameModal(
             />
             <Text class="label">#{props.client.user!.discriminator}</Text>
           </Row>
-          <Form2.TextField
-            name="currentPassword"
-            control={group.controls.currentPassword}
-            label={t`Current Password`}
-            type="password"
-            placeholder={t`Enter your current password...`}
-          />
+          <Show when={!oidcEnabled}>
+            <Form2.TextField
+              name="currentPassword"
+              control={group.controls.currentPassword}
+              label={t`Current Password`}
+              type="password"
+              placeholder={t`Enter your current password...`}
+            />
+          </Show>
         </Column>
       </form>
     </Dialog>

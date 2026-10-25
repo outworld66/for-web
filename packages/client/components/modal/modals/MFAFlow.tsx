@@ -52,7 +52,17 @@ export function MFAFlowModal(
   // Fetch available methods if they have not been provided.
   onMount(() => {
     if (!methods() && props.state === "known") {
-      setMethods(props.mfa.availableMethods);
+      const available = props.mfa.availableMethods;
+      setMethods(available);
+      if (available.length === 0) {
+        props.mfa
+          .createTicket({ password: "" })
+          .then((ticket) => {
+            props.callback(ticket);
+            props.onClose();
+          })
+          .catch(showError);
+      }
     }
   });
 
@@ -226,6 +236,9 @@ export function MFAFlowModal(
                   />
                 </Match>
               </Switch>
+            </Match>
+            <Match when={methods()?.length === 0}>
+              <CircularProgress />
             </Match>
             <Match when={methods()}>
               <For each={methods()}>
