@@ -434,6 +434,7 @@ export default class ClientController {
     this.lifecycle = new Lifecycle(this);
 
     this.login = this.login.bind(this);
+    this.loginOIDC = this.loginOIDC.bind(this);
     this.logout = this.logout.bind(this);
     this.selectUsername = this.selectUsername.bind(this);
     this.isError = this.isError.bind(this);
