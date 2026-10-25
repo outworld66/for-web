@@ -22,10 +22,12 @@ export default function FlowOIDC() {
       return;
     }
 
-    void loginOIDC(ticket, modals).catch((reason) => {
-      console.error("OIDC login failed:", reason);
-      setError(true);
-    });
+    void loginOIDC(ticket, modals)
+      .then(() => navigate("/login/auth", { replace: true }))
+      .catch((reason) => {
+        console.error("OIDC login failed:", reason);
+        setError(true);
+      });
   });
 
   return (
