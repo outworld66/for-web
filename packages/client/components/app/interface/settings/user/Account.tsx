@@ -7,6 +7,7 @@ import {
   createMfaResource,
   createOwnProfileResource,
 } from "@revolt/client/resources";
+import { useInstance } from "@revolt/instance";
 import { useModals } from "@revolt/modal";
 import { CategoryButton, Column, Row, iconSize, useSnackbar } from "@revolt/ui";
 
@@ -50,7 +51,11 @@ export function MyAccount() {
  */
 function EditAccount() {
   const client = useClient();
+  const { config } = useInstance();
   const { openModal } = useModals();
+  const oidcEnabled =
+    (config.features as typeof config.features & { oidc?: boolean }).oidc ===
+    true;
   const [email, setEmail] = createSignal("•••••••••••@•••••••••••");
 
   return (
@@ -68,46 +73,48 @@ function EditAccount() {
       >
         <Trans>Username</Trans>
       </CategoryButton>
-      <CategoryButton
-        action="chevron"
-        onClick={() =>
-          openModal({
-            type: "edit_email",
-            client: client(),
-          })
-        }
-        icon={<MdMail {...iconSize(22)} />}
-        description={
-          <Row>
-            {email()}{" "}
-            <Show when={email().startsWith("•")}>
-              <a
-                onClick={(event) => {
-                  event.stopPropagation();
-                  client().account.fetchEmail().then(setEmail);
-                }}
-              >
-                Reveal
-              </a>
-            </Show>
-          </Row>
-        }
-      >
-        <Trans>Email</Trans>
-      </CategoryButton>
-      <CategoryButton
-        action="chevron"
-        onClick={() =>
-          openModal({
-            type: "edit_password",
-            client: client(),
-          })
-        }
-        icon={<MdPassword {...iconSize(22)} />}
-        description={"•••••••••"}
-      >
-        <Trans>Password</Trans>
-      </CategoryButton>
+      <Show when={!oidcEnabled}>
+        <CategoryButton
+          action="chevron"
+          onClick={() =>
+            openModal({
+              type: "edit_email",
+              client: client(),
+            })
+          }
+          icon={<MdMail {...iconSize(22)} />}
+          description={
+            <Row>
+              {email()}{" "}
+              <Show when={email().startsWith("•")}>
+                <a
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    client().account.fetchEmail().then(setEmail);
+                  }}
+                >
+                  Reveal
+                </a>
+              </Show>
+            </Row>
+          }
+        >
+          <Trans>Email</Trans>
+        </CategoryButton>
+        <CategoryButton
+          action="chevron"
+          onClick={() =>
+            openModal({
+              type: "edit_password",
+              client: client(),
+            })
+          }
+          icon={<MdPassword {...iconSize(22)} />}
+          description={"•••••••••"}
+        >
+          <Trans>Password</Trans>
+        </CategoryButton>
+      </Show>
     </CategoryButton.Group>
   );
 }
